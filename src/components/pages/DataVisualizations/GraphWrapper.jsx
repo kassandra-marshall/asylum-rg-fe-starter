@@ -9,7 +9,10 @@ import TimeSeriesSingleOffice from './Graphs/TimeSeriesSingleOffice';
 import YearLimitsSelect from './YearLimitsSelect';
 import ViewSelect from './ViewSelect';
 import axios from 'axios';
-import { resetVisualizationQuery } from '../../../state/actionCreators';
+import {
+  resetVisualizationQuery,
+  setVisualizationData,
+} from '../../../state/actionCreators';
 import test_data from '../../../data/test_data.json';
 import { colors } from '../../../styles/data_vis_colors';
 import ScrollToTopOnMount from '../../../utils/scrollToTopOnMount';
@@ -75,31 +78,47 @@ function GraphWrapper(props) {
 
     if (office === 'all' || !office) {
       axios
-        .get(process.env.REACT_APP_API_URI, {
+        // .get(process.env.REACT_APP_API_URI, {
+        .get('https://hrf-asylum-be-b.herokuapp.com/cases/fiscalSummary', {
           // mock URL, can be simply replaced by `${Real_Production_URL}/summary` in prod!
           params: {
             from: years[0],
-            to: years[1],
+            // to: years[1]
+            to: years.length - 1,
           },
         })
         .then(result => {
-          stateSettingCallback(view, office, test_data); // <-- `test_data` here can be simply replaced by `result.data` in prod!
+          console.log(result.data.yearResults);
+          console.log(props.timeSeriesAllData);
+          console.log(dispatch);
+          dispatch(setVisualizationData(view, office, result.data));
+          console.log(props.timeSeriesAllData);
+          stateSettingCallback(view, office, result.data); // <-- `test_data` here can be simply replaced by `result.data` in prod!
         })
         .catch(err => {
           console.error(err);
         });
     } else {
       axios
-        .get(process.env.REACT_APP_API_URI, {
+        .get('https://hrf-asylum-be-b.herokuapp.com/cases/fiscalSummary', {
+          // .get(process.env.REACT_APP_API_URI, {
           // mock URL, can be simply replaced by `${Real_Production_URL}/summary` in prod!
           params: {
             from: years[0],
-            to: years[1],
-            office: office,
+            to: years.length - 1,
+            // to: years[1]
+            // office: office,
+            // office: years[0].yearData.find(office)
           },
         })
+
         .then(result => {
-          stateSettingCallback(view, office, test_data); // <-- `test_data` here can be simply replaced by `result.data` in prod!
+          console.log(
+            result.data.yearResults.forEach(result => {
+              console.log(result.yearData.find(item => item.office === office));
+            })
+          );
+          stateSettingCallback(view, office, result.data); // <-- `test_data` here can be simply replaced by `result.data` in prod!
         })
         .catch(err => {
           console.error(err);
@@ -144,4 +163,10 @@ function GraphWrapper(props) {
   );
 }
 
-export default connect()(GraphWrapper);
+const mapStateToProps = state => {
+  return {
+    timeSeriesAllData: state.vizReducer.timeSeriesAllData,
+  };
+};
+
+export default connect(mapStateToProps, { setVisualizationData })(GraphWrapper);
