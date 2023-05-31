@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import CitizenshipMapAll from './Graphs/CitizenshipMapAll';
@@ -9,10 +9,7 @@ import TimeSeriesSingleOffice from './Graphs/TimeSeriesSingleOffice';
 import YearLimitsSelect from './YearLimitsSelect';
 import ViewSelect from './ViewSelect';
 import axios from 'axios';
-import {
-  resetVisualizationQuery,
-  setVisualizationData,
-} from '../../../state/actionCreators';
+import { resetVisualizationQuery } from '../../../state/actionCreators';
 import test_data from '../../../data/test_data.json';
 import { colors } from '../../../styles/data_vis_colors';
 import ScrollToTopOnMount from '../../../utils/scrollToTopOnMount';
@@ -20,6 +17,7 @@ import ScrollToTopOnMount from '../../../utils/scrollToTopOnMount';
 const { background_color } = colors;
 
 function GraphWrapper(props) {
+  const [data, setData] = useState([]);
   const { set_view, dispatch } = props;
   let { office, view } = useParams();
   if (!view) {
@@ -53,7 +51,13 @@ function GraphWrapper(props) {
         break;
     }
   }
-  function updateStateWithNewData(years, view, office, stateSettingCallback) {
+
+  async function updateStateWithNewData(
+    years,
+    view,
+    office,
+    stateSettingCallback
+  ) {
     /*
           _                                                                             _
         |                                                                                 |
@@ -75,54 +79,52 @@ function GraphWrapper(props) {
                                    -- Mack 
     
     */
-
     if (office === 'all' || !office) {
-      axios
-        // .get(process.env.REACT_APP_API_URI, {
-        .get('https://hrf-asylum-be-b.herokuapp.com/cases/fiscalSummary', {
-          // mock URL, can be simply replaced by `${Real_Production_URL}/summary` in prod!
+      const fiscal = await axios.get(
+        'https://hrf-asylum-be-b.herokuapp.com/cases/fiscalSummary',
+        {
           params: {
             from: years[0],
-            // to: years[1]
-            to: years.length - 1,
+            to: years[1],
           },
-        })
-        .then(result => {
-          console.log(result.data.yearResults);
-          console.log(props.timeSeriesAllData);
-          console.log(dispatch);
-          dispatch(setVisualizationData(view, office, result.data));
-          console.log(props.timeSeriesAllData);
-          stateSettingCallback(view, office, result.data); // <-- `test_data` here can be simply replaced by `result.data` in prod!
-        })
-        .catch(err => {
-          console.error(err);
-        });
+        }
+      );
+      const citizenship = await axios.get(
+        'https://hrf-asylum-be-b.herokuapp.com/cases/citizenshipSummary',
+        {
+          params: {
+            from: years[0],
+            to: years[1],
+          },
+        }
+      );
+      fiscal['citizenshipResults'] = citizenship.data;
+      console.log(fiscal);
+      stateSettingCallback(view, office, [fiscal.data]);
     } else {
-      axios
-        .get('https://hrf-asylum-be-b.herokuapp.com/cases/fiscalSummary', {
-          // .get(process.env.REACT_APP_API_URI, {
-          // mock URL, can be simply replaced by `${Real_Production_URL}/summary` in prod!
+      const fiscal = await axios.get(
+        'https://hrf-asylum-be-b.herokuapp.com/cases/fiscalSummary',
+        {
           params: {
             from: years[0],
-            to: years.length - 1,
-            // to: years[1]
-            // office: office,
-            // office: years[0].yearData.find(office)
+            to: years[1],
+            office: office,
           },
-        })
-
-        .then(result => {
-          console.log(
-            result.data.yearResults.forEach(result => {
-              console.log(result.yearData.find(item => item.office === office));
-            })
-          );
-          stateSettingCallback(view, office, result.data); // <-- `test_data` here can be simply replaced by `result.data` in prod!
-        })
-        .catch(err => {
-          console.error(err);
-        });
+        }
+      );
+      const citizenship = await axios.get(
+        'https://hrf-asylum-be-b.herokuapp.com/cases/citizenshipSummary',
+        {
+          params: {
+            from: years[0],
+            to: years[1],
+            office: office,
+          },
+        }
+      );
+      fiscal['citizenshipResults'] = citizenship.data;
+      console.log(fiscal);
+      stateSettingCallback(view, office, [fiscal.data]);
     }
   }
   const clearQuery = (view, office) => {
@@ -163,10 +165,4 @@ function GraphWrapper(props) {
   );
 }
 
-const mapStateToProps = state => {
-  return {
-    timeSeriesAllData: state.vizReducer.timeSeriesAllData,
-  };
-};
-
-export default connect(mapStateToProps, { setVisualizationData })(GraphWrapper);
+export default connect()(GraphWrapper);
