@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import CitizenshipMapAll from './Graphs/CitizenshipMapAll';
@@ -10,14 +10,13 @@ import YearLimitsSelect from './YearLimitsSelect';
 import ViewSelect from './ViewSelect';
 import axios from 'axios';
 import { resetVisualizationQuery } from '../../../state/actionCreators';
-import test_data from '../../../data/test_data.json';
+// import test_data from '../../../data/test_data.json';
 import { colors } from '../../../styles/data_vis_colors';
 import ScrollToTopOnMount from '../../../utils/scrollToTopOnMount';
 
 const { background_color } = colors;
 
 function GraphWrapper(props) {
-  const [data, setData] = useState([]);
   const { set_view, dispatch } = props;
   let { office, view } = useParams();
   if (!view) {
