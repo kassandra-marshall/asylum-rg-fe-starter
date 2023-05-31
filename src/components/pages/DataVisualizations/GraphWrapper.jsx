@@ -98,7 +98,7 @@ function GraphWrapper(props) {
         }
       );
       fiscal['citizenshipResults'] = citizenship.data;
-      console.log(fiscal);
+
       stateSettingCallback(view, office, [fiscal.data]);
     } else {
       const fiscal = await axios.get(
