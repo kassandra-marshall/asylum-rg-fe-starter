@@ -3,6 +3,7 @@ import { Image } from 'antd';
 import { Link } from 'react-router-dom';
 import Logo from '../../styles/Images/WhiteLogo.png';
 import { colors } from '../../styles/data_vis_colors';
+import AuthNav from '../AuthNav';
 
 const { primary_accent_color } = colors;
 
@@ -25,10 +26,17 @@ function HeaderContent() {
         <Link to="/" style={{ color: '#E2F0F7', paddingRight: '75px' }}>
           Home
         </Link>
-        <Link to="/graphs" style={{ color: '#E2F0F7' }}>
+        <Link to="/graphs" style={{ color: '#E2F0F7', paddingRight: '75px' }}>
           Graphs
         </Link>
+        <Link
+          to="/profile-page"
+          style={{ color: '#E2F0F7', paddingRight: '75px' }}
+        >
+          Profile Page
+        </Link>
       </div>
+      <AuthNav />
     </div>
   );
 }
