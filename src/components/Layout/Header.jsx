@@ -39,12 +39,6 @@ function HeaderContent() {
             Profile Page
           </Link>
         ) : null}
-        {/* <Link
-          to="/profile-page"
-          style={{ color: '#E2F0F7', paddingRight: '75px' }}
-        >
-          Profile Page
-        </Link> */}
       </div>
       <AuthNav />
     </div>
